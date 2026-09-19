@@ -2,8 +2,8 @@ import os
 import re
 import json
 import base64
-import uuid
-from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent, TextDelta, StreamDone
+
+import google.generativeai as genai
 from pricing import PRICE_TABLE, CONDITION_MULT
 
 CATEGORY_GUIDE = "\n".join(f"- {k}: {v['label']}" for k, v in PRICE_TABLE.items())
@@ -16,29 +16,37 @@ SYSTEM = (
     '{"category": "<key>", "condition": "<key>", "weight_kg": <number>, "confidence": <0-1>, "items": ["<short item>", ...], "notes": "<one sentence>"}'
 )
 
+MODEL = "gemini-1.5-flash"  # free-tier friendly, supports vision
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel(MODEL, system_instruction=SYSTEM)
+
 
 async def analyze_photo(image_bytes: bytes, hint: str = "") -> dict:
-    chat = LlmChat(api_key=os.environ["EMERGENT_LLM_KEY"], session_id=f"ewaste-{uuid.uuid4()}", system_message=SYSTEM).with_model("openai", "gpt-5.4-mini")
     text = "Classify this e-waste photo and estimate its weight."
     if hint:
         text += f" Collector's note: {hint}"
-    msg = UserMessage(text=text, file_contents=[ImageContent(image_base64=base64.b64encode(image_bytes).decode())])
-    out = ""
-    async for ev in chat.stream_message(msg):
-        if isinstance(ev, TextDelta):
-            out += ev.content
-        elif isinstance(ev, StreamDone):
-            break
+
+    response = model.generate_content(
+        [
+            text,
+            {"mime_type": "image/jpeg", "data": image_bytes},
+        ]
+    )
+
+    out = response.text or ""
+
     match = re.search(r"\{.*\}", out, re.S)
     if not match:
         raise ValueError("Model did not return JSON")
     data = json.loads(match.group())
+
     category = data.get("category") if data.get("category") in PRICE_TABLE else "mixed"
     condition = data.get("condition") if data.get("condition") in CONDITION_MULT else "repairable"
     try:
         weight = round(min(5000.0, max(0.1, float(data.get("weight_kg", 1)))), 1)
     except (TypeError, ValueError):
         weight = 1.0
+
     return {
         "category": category,
         "label": PRICE_TABLE[category]["label"],
@@ -48,5 +56,5 @@ async def analyze_photo(image_bytes: bytes, hint: str = "") -> dict:
         "confidence": round(float(data.get("confidence", 0.7) or 0.7), 2),
         "items": [str(i) for i in (data.get("items") or [])][:8],
         "notes": str(data.get("notes", ""))[:300],
-        "model": "gpt-5.4-mini",
+        "model": MODEL,
     }
