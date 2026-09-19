@@ -9,7 +9,7 @@ from typing import Optional
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Request, UploadFile, File, Response
 from pydantic import BaseModel, Field
-from emergentintegrations.payments.stripe.checkout import StripeCheckout, CheckoutSessionRequest
+import stripe
 from db import db, now_iso, log_activity
 from auth import get_current_user, require_role, public_user, normalize_phone
 from models import Listing
@@ -17,6 +17,9 @@ from pricing import PRICE_TABLE, CONDITION_MULT, categorize, estimate
 from storage import put_object, get_object
 from ai import analyze_photo
 from notify import notify, twilio_config
+
+stripe.api_key = os.environ["STRIPE_API_KEY"]
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 
 
 def haversine_km(lat1, lng1, lat2, lng2) -> float:
@@ -57,11 +60,6 @@ async def get_listing(listing_id: str) -> dict:
     if not doc:
         raise HTTPException(status_code=404, detail="Listing not found")
     return doc
-
-
-def stripe_client(request: Request) -> StripeCheckout:
-    host_url = str(request.base_url)
-    return StripeCheckout(api_key=os.environ["STRIPE_API_KEY"], webhook_url=f"{host_url}api/webhook/stripe")
 
 
 @router.get("/")
@@ -363,23 +361,33 @@ async def checkout_listing(listing_id: str, body: CheckoutIn, request: Request, 
         raise HTTPException(status_code=400, detail="Only the matched recycler can pay for a matched lot")
     amount = float(doc["estimated_price"])
     origin = body.origin_url.rstrip("/")
-    req = CheckoutSessionRequest(
-        amount=amount, currency="inr",
-        success_url=f"{origin}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
-        cancel_url=f"{origin}/payment/cancel",
-        metadata={"listing_id": listing_id, "recycler_id": user["id"], "collector_id": doc["collector_id"], "title": doc["title"]},
-    )
+    amount_paise = int(round(amount * 100))
     try:
-        session = await stripe_client(request).create_checkout_session(req)
+        session = await asyncio.to_thread(
+            stripe.checkout.Session.create,
+            mode="payment",
+            payment_method_types=["card"],
+            line_items=[{
+                "price_data": {
+                    "currency": "inr",
+                    "unit_amount": amount_paise,
+                    "product_data": {"name": doc["title"]},
+                },
+                "quantity": 1,
+            }],
+            success_url=f"{origin}/payment/success?session_id={{CHECKOUT_SESSION_ID}}",
+            cancel_url=f"{origin}/payment/cancel",
+            metadata={"listing_id": listing_id, "recycler_id": user["id"], "collector_id": doc["collector_id"], "title": doc["title"]},
+        )
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Stripe checkout failed: {e}")
     await db.payment_transactions.insert_one({
-        "session_id": session.session_id, "listing_id": listing_id, "recycler_id": user["id"], "collector_id": doc["collector_id"],
+        "session_id": session.id, "listing_id": listing_id, "recycler_id": user["id"], "collector_id": doc["collector_id"],
         "amount": amount, "currency": "inr", "status": "initiated", "payment_status": "pending", "created_at": now_iso(), "updated_at": now_iso(),
     })
-    await db.listings.update_one({"_id": doc["_id"]}, {"$set": {"payment_session_id": session.session_id}})
+    await db.listings.update_one({"_id": doc["_id"]}, {"$set": {"payment_session_id": session.id}})
     await log_activity(user, "payment.initiated", f"Stripe checkout started for '{doc['title']}' · ₹{amount}", listing_id, amount)
-    return {"checkout_url": session.url, "session_id": session.session_id}
+    return {"checkout_url": session.url, "session_id": session.id}
 
 
 async def finalize_payment(session_id: str):
@@ -415,7 +423,7 @@ async def payment_status(session_id: str, request: Request):
         raise HTTPException(status_code=404, detail="Transaction not found")
     if txn["payment_status"] != "paid":
         try:
-            st = await stripe_client(request).get_checkout_status(session_id)
+            st = await asyncio.to_thread(stripe.checkout.Session.retrieve, session_id)
             if st.payment_status == "paid":
                 await finalize_payment(session_id)
             elif st.status == "expired":
@@ -431,11 +439,13 @@ async def stripe_webhook(request: Request):
     body = await request.body()
     sig = request.headers.get("Stripe-Signature")
     try:
-        event = await stripe_client(request).handle_webhook(body, sig)
+        event = stripe.Webhook.construct_event(body, sig, STRIPE_WEBHOOK_SECRET)
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Webhook error: {e}")
-    if event.payment_status == "paid":
-        await finalize_payment(event.session_id)
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        if session.get("payment_status") == "paid":
+            await finalize_payment(session["id"])
     return {"status": "ok"}
 
 
