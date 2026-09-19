@@ -1,0 +1,29 @@
+{
+  "summary": "Iteration 2 testing (Razorpay stubs, Leaflet map + location, AI photo categorization). Backend: 19/19 pytest cases in test_iter2.py PASS. Frontend: all target flows work — recycler marketplace shows market-map with tiles + 'km away' distance labels + match buttons; Purchases pay-menu shows Stripe enabled and Razorpay DISABLED with a razorpay-not-configured note, close hides menu, Stripe redirects to checkout.stripe.com; collector overview shows collector-map with legend 'amber = recycler (1)'; New Listing wizard step1 has working LocationPicker (map click updates picked-coords to real lat,lng and summary), photo-input upload reaches 'Stored'; step2 ai-analyze-button correctly disabled without photo, enabled after upload, ai-result populated (category=pcb, weight=0.5) and publish succeeded; new recycler register flow shows 'Set your facility location', map click + save-facility-location-button emits toast and reveals market-map with distance-sorted lots.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "New Listing StepCategorize", "issues": ["Pre-existing (iter1) React hydration warning: <span> injected inside <option>. Still emitted in console; non-blocking."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_iter2.py", "/app/test_reports/pytest/iter2_results.xml", "/app/backend/tests/test_recircuit_api.py"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "razorpay_routes.py: config endpoint & 503 gates are correct; keys are read at request time via os.environ (good — can be enabled without restart, provided load_dotenv reads updates or supervisor restart happens).",
+    "routes.py haversine + with_distance uses (distance is None, distance or 0) sort key — correct null-last behaviour verified in tests.",
+    "PUT /me/location validates lat/lng bounds via Pydantic (422 on lat=200) — good.",
+    "ai.py falls back to category='mixed' if model returns something not in PRICE_TABLE — good defensive default.",
+    "LocationPicker click handler correctly wires useMapEvents; picked-coords updates to 4-decimal string.",
+    "Frontend uses REACT_APP_BACKEND_URL and JWT in localStorage rc_token consistently."
+  ],
+  "updated_files": ["/app/backend/tests/test_iter2.py", "/app/test_reports/iteration_2.json"],
+  "success_rate": {"backend": "100% (19/19)", "frontend": "100% (all target flows)"},
+  "test_credentials": "Used seeded creds from /app/memory/test_credentials.md — collector@nullset.dev / Collector@123, recycler@nullset.dev / Recycler@123, admin unchanged. Additional TEST_rec_* recycler registered during flow (safe/prefixed).",
+  "seed_data_creation": "Created a few TEST_ prefixed collector listings (near/far lat/lng, no-loc, matched-for-razorpay) and one TEST_rec_* recycler via register flow.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Iteration 2 backend regression suite lives in /app/backend/tests/test_iter2.py (run with REACT_APP_BACKEND_URL env). AI photo test calls Emergent LLM once per pytest run — keep total calls minimal. Note: model returns 'pcb'/'mixed'/etc as valid categories; the allowed set now includes 'mixed' (see test). Frontend Leaflet click needs the actual .leaflet-container element bounding box (map section can be far down the page — do not assume viewport 0,0).",
+  "rca of the issue": "N/A — no bugs found. Only pre-existing iter1 <option><span> hydration warning remains."
+}

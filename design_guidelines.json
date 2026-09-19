@@ -1,0 +1,176 @@
+{
+  "theme_and_brand": {
+    "project_name": "Digitalizing the Informal E-Waste Recycling System",
+    "team_name": "The Null Set",
+    "ps_id": "Open Innovation",
+    "theme": "Clean & Technology",
+    "archetype": "Electric & Neon (Archetype 7) mixed with Swiss Brutalist Structure",
+    "overall_mood": "High-tech, environmental urgency, precise, modern, dark-first SaaS."
+  },
+  "typography": {
+    "headings": {
+      "font": "Outfit",
+      "import_instructions": "Import 'Outfit' from Google Fonts. Do NOT use Inter, Space Grotesk, Roboto, or Open Sans for headings.",
+      "weights": ["400", "700", "900"],
+      "styling": "tracking-tight, leading-none"
+    },
+    "body": {
+      "font": "DM Sans",
+      "import_instructions": "Import 'DM Sans' from Google Fonts.",
+      "weights": ["400", "500"],
+      "styling": "leading-relaxed"
+    },
+    "scale": {
+      "h1": "text-4xl sm:text-5xl lg:text-6xl max-w-4xl",
+      "h2": "text-2xl sm:text-3xl lg:text-4xl",
+      "h3": "text-xl sm:text-2xl",
+      "h4": "text-lg sm:text-xl",
+      "body": "text-base md:text-lg",
+      "labels": "text-xs uppercase tracking-[0.2em]"
+    }
+  },
+  "colors": {
+    "background": {
+      "primary": "#0A0A0A",
+      "secondary": "#111111",
+      "tertiary": "#1A1A1A"
+    },
+    "text": {
+      "primary": "#F3F4F6",
+      "secondary": "#9CA3AF",
+      "muted": "#6B7280"
+    },
+    "accent": {
+      "primary": "#7CFC00",
+      "primary_hover": "#6BE000",
+      "subtle_glow": "rgba(124, 252, 0, 0.15)"
+    },
+    "borders": {
+      "default": "rgba(255, 255, 255, 0.1)",
+      "focus": "#7CFC00"
+    },
+    "rules": [
+      "Use #0A0A0A for app background.",
+      "Use #111111 for dashboard sidebars and dense layout sections.",
+      "Use #1A1A1A for Bento grid cards to create subtle elevation.",
+      "Vibrant lime-green (#7CFC00) is strictly for primary CTAs, active states, active nav items, and positive trend indicators.",
+      "NEVER use pure transparent backgrounds for headers/overlays; use backdrop-blur-xl bg-black/60."
+    ]
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "usage": ["Fixed Top Nav", "Floating Action Modals", "Toasts"],
+      "classes": "backdrop-blur-xl bg-black/60 border-b border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+    },
+    "bento_cards": {
+      "usage": ["Landing Page 6-Step Guide", "Informational Grids"],
+      "classes": "bg-[#111111] border border-white/10 rounded-2xl p-6 lg:p-8 hover:-translate-y-1 transition-transform duration-300 shadow-sm"
+    },
+    "textures": {
+      "landing_background": "Implement a subtle halftone/noise overlay or blurred abstract background over the #0A0A0A base to kill digital flatness."
+    }
+  },
+  "spacing_and_layouts": {
+    "general": "Use generous spacing. Tailwind scale: p-4, p-6, p-8, p-12, p-16. Containers with borders MUST have internal padding (p-6 or p-8) to prevent text collision.",
+    "landing_page_grid": "Mode A (Tetris Grid). grid-cols-1 md:grid-cols-8 lg:grid-cols-12 with wide gaps (gap-8). Elements span differently (e.g., col-span-8 row-span-2 for hero bento, col-span-4 for standard steps).",
+    "dashboard_grid": "Mode B (High Density). grid-cols-1 md:grid-cols-3 lg:grid-cols-4 with tight gaps (gap-4 or gap-6). Use h-full so cards match neighbors perfectly."
+  },
+  "components": {
+    "buttons": {
+      "primary": "Pill-shaped (rounded-full), bg-[#7CFC00] text-black font-semibold hover:bg-[#6BE000] px-6 py-3 transition-colors",
+      "secondary": "Pill-shaped, bg-white/5 text-white border border-white/10 hover:bg-white/10 px-6 py-3 transition-colors"
+    },
+    "navigation": {
+      "landing": "Fixed top nav, glassmorphism applied. Links: Layouts, System, Docs, Sign In.",
+      "dashboard": "Left Sidebar (bg-[#111111], border-r border-white/10). Links: Dashboard, Lifecycle, Analytics, Projects, Team, Documents. Active state uses Lime Green text + subtle left border or background tint."
+    },
+    "kpi_cards": {
+      "structure": "Shadcn Card or custom div. bg-[#1A1A1A], border-white/10, p-6.",
+      "contents": "Title (muted, text-sm uppercase), Main Value (text-3xl text-white), Trend Indicator (text-[#7CFC00] with up arrow for positive)."
+    },
+    "forms_and_inputs": {
+      "rules": "Use Shadcn customized primitives. Backgrounds must be #0A0A0A or #111111. Borders white/10. Focus state: ring-2 ring-[#7CFC00]."
+    }
+  },
+  "pages_and_flows": {
+    "loading_splash": {
+      "layout": "Full screen center aligned. Black background.",
+      "content": "Display PS ID: Open Innovation, Title: Digitalizing the Informal E-Waste Recycling System, Theme: Clean & Technology, Team: The Null Set. Use 'React Bits CountUp component' (or react-countup) to animate stats: Kg Recycled, Active Collectors, ₹ Paid Out."
+    },
+    "landing_page": {
+      "hero": "Hero section 'Build Faster / Ship with Confidence' context adapted to E-waste. Blurred mountain background + textured overlay.",
+      "process_section": "6-Step Flow in a Bento Grid: 1. Capture photo, 2. Categorize type & weight, 3. Value price estimate, 4. Match recycler, 5. Handover record, 6. Payment earnings updated. Solid color cards with icons.",
+      "pricing": "Tiered layout with white pill CTAs."
+    },
+    "auth": {
+      "roles": ["Collector", "Recycler", "Admin"],
+      "layout": "Centered glass card on dark textured background with JWT logic mock."
+    },
+    "dashboard_collector": {
+      "wizard": "New Listing Flow: Photo upload area, Category/Weight inputs, Rule-based price estimate showing ₹.",
+      "views": "My Listings grid, Wallet/Earnings KPI summary."
+    },
+    "dashboard_recycler": {
+      "views": "Browse Open Listings grid/table, Make Offer/Accept interaction, Stripe Checkout payment mock button, Handover digital record confirmation."
+    },
+    "dashboard_admin": {
+      "views": "KPI metric cards, Area line chart (Recharts) for 'Kg Recycled Over Time' with #7CFC00 line, All Activity Logs Table, Users List."
+    }
+  },
+  "libraries": {
+    "required": [
+      "react-countup",
+      "recharts",
+      "lucide-react",
+      "framer-motion",
+      "clsx",
+      "tailwind-merge",
+      "sonner"
+    ],
+    "icons": "Use 'lucide-react' for all iconography."
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1518770660439-4636190af475?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzl8MHwxfHNlYXJjaHwzfHxlbGVjdHJvbmljJTIwd2FzdGUlMjBjaXJjdWl0JTIwYm9hcmRzJTIwZGFya3xlbnwwfHx8fDE3ODg3NjM1NDl8MA&ixlib=rb-4.1.0&q=85",
+      "description": "Macro photography of black circuit board",
+      "category": "landing_background_texture"
+    },
+    {
+      "url": "https://images.pexels.com/photos/14227625/pexels-photo-14227625.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Dramatic mountain landscape with mist",
+      "category": "hero_blurred_background"
+    },
+    {
+      "url": "https://images.pexels.com/photos/22989049/pexels-photo-22989049.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Modern recycling facility with scrap and machinery",
+      "category": "recycler_dashboard_banner"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1648614593495-e0955bf287e5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzd8MHwxfHNlYXJjaHwyfHxsaW1lJTIwZ3JlZW4lMjBnbG93aW5nJTIwdGVjaCUyMGFic3RyYWN0fGVufDB8fHx8MTc4ODc2MzU2M3ww&ixlib=rb-4.1.0&q=85",
+      "description": "Lime green glowing tech abstract",
+      "category": "admin_dashboard_accent_graphic"
+    }
+  ],
+  "motion_and_interactions": {
+    "hover_states": "All interactive elements MUST explicitly set text color and background on hover.",
+    "transitions": "Use specific transition properties like 'transition-transform duration-300'. NEVER use 'transition-all'.",
+    "framer_motion": "Wrap grid items in framer-motion divs for staggered entrance animations. Ensure motion div is the direct child of the grid container."
+  },
+  "accessibility": {
+    "contrast": "Ensure white text on #1A1A1A meets contrast ratios. Use #7CFC00 for large text, icons, or buttons with black text on top.",
+    "testing": "All interactive and key informational elements MUST include a 'data-testid' attribute (e.g., data-testid='login-submit-button').",
+    "focus": "Focus states must be visible: ring-2 ring-[#7CFC00] offset-2 offset-[#0A0A0A]."
+  },
+  "universal_guidelines_for_main_agent": [
+    "Write all Shadcn components and logic in standard React Javascript (.jsx/.js), NOT TypeScript.",
+    "Implement a Dark Mode only/first design.",
+    "Do not converge towards generic 'AI slop'. Prioritize the #111 bento and #7CFC00 aesthetic. Use deep layering and precise padding.",
+    "Do NOT apply global 'transition: all' in CSS.",
+    "Do NOT center align the root .App container in CSS.",
+    "Never use generic emojis as UI icons. Use lucide-react.",
+    "Use sonner for toast notifications.",
+    "When customizing Shadcn components, ensure they map to the dark mode palette. Strip out generic defaults.",
+    "Every dynamic listing, metric, or user row must be mapped from dummy data. Show ₹ currency for all financial values.",
+    "Do not use placeholders for images. Always map to the provided image URLs."
+  ]
+}
