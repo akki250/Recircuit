@@ -1,13 +1,12 @@
-```python
 import os
 import io
+import requests
 import cloudinary
 import cloudinary.uploader
 import cloudinary.api
-import requests
 
 
-# Configure Cloudinary using environment variables
+# Configure Cloudinary
 cloudinary.config(
     cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
     api_key=os.environ.get("CLOUDINARY_API_KEY"),
@@ -17,7 +16,6 @@ cloudinary.config(
 
 
 def _check_cloudinary_config():
-    """Make sure all required Cloudinary credentials are configured."""
     required = [
         "CLOUDINARY_CLOUD_NAME",
         "CLOUDINARY_API_KEY",
@@ -34,10 +32,8 @@ def _check_cloudinary_config():
 
 def init_storage(force: bool = False):
     """
-    Kept for compatibility with the existing application.
-
-    Cloudinary does not require a storage initialization step,
-    so this simply verifies that the Cloudinary configuration exists.
+    Compatibility function for the existing application.
+    Cloudinary does not require storage initialization.
     """
     _check_cloudinary_config()
     return True
@@ -45,23 +41,17 @@ def init_storage(force: bool = False):
 
 def put_object(path: str, data: bytes, content_type: str) -> dict:
     """
-    Upload an image/file to Cloudinary.
-
-    `path` is used to create a unique public ID.
-    `data` contains the file bytes.
-    `content_type` is retained for compatibility with the old storage API.
+    Upload an image to Cloudinary.
     """
 
     _check_cloudinary_config()
 
-    # Remove leading slash from the path
     public_id = path.lstrip("/")
 
-    # Remove the file extension because Cloudinary handles it automatically
+    # Remove file extension from public ID
     if "." in public_id.split("/")[-1]:
         public_id = public_id.rsplit(".", 1)[0]
 
-    # Upload bytes directly to Cloudinary
     result = cloudinary.uploader.upload(
         io.BytesIO(data),
         public_id=public_id,
@@ -84,20 +74,16 @@ def put_object(path: str, data: bytes, content_type: str) -> dict:
 def get_object(path: str) -> tuple[bytes, str]:
     """
     Download an image from Cloudinary.
-
-    Returns:
-        (file_bytes, content_type)
     """
 
     _check_cloudinary_config()
 
     public_id = path.lstrip("/")
 
-    # Remove extension because Cloudinary public IDs don't normally include it
+    # Remove file extension
     if "." in public_id.split("/")[-1]:
         public_id = public_id.rsplit(".", 1)[0]
 
-    # Generate the delivery URL
     result = cloudinary.api.resource(
         public_id,
         resource_type="image",
@@ -113,7 +99,8 @@ def get_object(path: str) -> tuple[bytes, str]:
 
     return (
         response.content,
-        response.headers.get("Content-Type", "application/octet-stream"),
+        response.headers.get(
+            "Content-Type",
+            "application/octet-stream"
+        ),
     )
-```
- 
