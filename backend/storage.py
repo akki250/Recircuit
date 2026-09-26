@@ -116,3 +116,4 @@ def get_object(path: str) -> tuple[bytes, str]:
         response.headers.get("Content-Type", "application/octet-stream"),
     )
 ```
+ 
