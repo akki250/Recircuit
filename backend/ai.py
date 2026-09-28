@@ -16,7 +16,7 @@ SYSTEM = (
     '{"category": "<key>", "condition": "<key>", "weight_kg": <number>, "confidence": <0-1>, "items": ["<short item>", ...], "notes": "<one sentence>"}'
 )
 
-MODEL = "gemini-1.5-flash"  # free-tier friendly, supports vision
+   MODEL = "gemini-3.8-flash" # free-tier friendly, supports vision
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 model = genai.GenerativeModel(MODEL, system_instruction=SYSTEM)
 
